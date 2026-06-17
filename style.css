@@ -1,9 +1,17 @@
+/* ==========================================================================
+   1. ĐỊNH NGHĨA BIẾN HỆ MÀU & ĐỊNH DẠNG RESET CHUẨN
+   ========================================================================== */
 :root {
-    --bg-color: #0f172a; /* Nền tối sang trọng */
-    --envelope-color: #1e293b; /* Màu bao thư */
-    --flap-color: #334155; /* Màu nắp bao thư */
-    --letter-bg: #ffffff; /* Màu nền tấm thiệp */
-    --gold: #fbbf24; /* Màu vàng gold nhấn góc */
+    --navy-blue: #0f2c59;        /* Sắc chữ chính sang trọng */
+    --pastel-blue: #a0c4ff;      /* Sắc viền và trang trí phụ */
+    --cyan-accent: #48cae4;
+    --paper-white: #ffffff;
+    --envelope-bg: #fdfaf2;      /* Màu giấy ngả vàng kem cao cấp */
+    --envelope-flap: #f3ebd5;    /* Sắc độ đậm hơn phân tách nắp 3D */
+    --text-dark: #2c3e50;
+    --text-muted: #64748b;
+    --shadow-envelope: 0 20px 45px rgba(15, 44, 89, 0.15);
+    --shadow-card: 0 25px 60px rgba(15, 44, 89, 0.12);
 }
 
 * {
@@ -13,171 +21,462 @@
 }
 
 body {
-    background-color: var(--bg-color);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f9ff;
+    color: var(--text-dark);
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Hiệu ứng mảng Watercolor loang nhạt phía nền */
+.watercolor-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: 
+        radial-gradient(circle at 10% 15%, rgba(160, 196, 255, 0.22) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(72, 202, 228, 0.18) 0%, transparent 45%);
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* Vùng chứa các phần tử rơi/bay tự do */
+.floating-particles-container {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1;
+    pointer-events: none;
     overflow: hidden;
 }
 
-.container {
-    position: relative;
+.stage-wrapper {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    position: relative;
 }
 
-/* Khung chứa bao thư */
-.envelope-wrapper {
+/* ==========================================================================
+   2. KHUNG PHONG BÌ THƯ BAN ĐẦU (MÀN HÌNH MỞ ĐẦU)
+   ========================================================================== */
+.envelope-container {
+    width: 420px;
+    max-width: 92vw;
+    height: 270px;
     position: relative;
+    z-index: 10;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    perspective: 1200px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    will-change: transform, opacity;
 }
 
-.envelope-wrapper:hover {
-    transform: scale(1.03);
+.envelope-container:hover {
+    transform: scale(1.03) translateY(-4px);
 }
 
-/* Định hình bao thư */
-.envelope {
+.envelope-3d-box {
+    width: 100%; height: 100%;
     position: relative;
-    width: 320px;
-    height: 220px;
-    background-color: var(--envelope-color);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    border-radius: 0 0 8px 8px;
+    transform-style: preserve-3d;
 }
 
-/* Nắp bao thư (Tam giác phía trên) */
-.front.flap {
+/* Nắp gập tam giác của phong bì (Xoay 3D) */
+.envelope-flap {
     position: absolute;
-    top: 0;
-    left: 0;
-    border-left: 160px solid transparent;
-    border-right: 160px solid transparent;
-    border-top: 115px solid var(--flap-color);
+    top: 0; left: 0; width: 0; height: 0;
+    border-left: 210px solid transparent;
+    border-right: 210px solid transparent;
+    border-top: 145px solid var(--envelope-flap);
     transform-origin: top;
-    transition: transform 0.5s ease, z-index 0.2s ease;
-    z-index: 3;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.1s ease 0.3s;
+    z-index: 13;
+}
+@media (max-width: 480px) {
+    .envelope-flap {
+        border-left-width: 46vw; border-right-width: 46vw; border-top-width: 33vw;
+    }
 }
 
-/* Thân bao thư (Bọc bên ngoài) */
-.front.pocket {
+.envelope-back {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    border-left: 160px solid transparent;
-    border-right: 160px solid transparent;
-    border-bottom: 110px solid #1e293b;
-    z-index: 4;
-}
-
-.front.pocket::after {
-    content: '';
-    position: absolute;
-    bottom: -110px;
-    left: -160px;
-    border-left: 160px solid #243249;
-    border-right: 160px solid #243249;
-    border-bottom: 110px solid transparent;
-}
-
-/* Tấm thiệp bên trong */
-.letter {
-    position: absolute;
-    bottom: 5px;
-    left: 15px;
-    width: 290px;
-    height: 200px;
-    background-color: var(--letter-bg);
+    width: 100%; height: 100%;
+    background-color: var(--envelope-bg);
     border-radius: 6px;
-    padding: 15px;
-    z-index: 2;
-    transition: transform 0.6s ease-in-out, height 0.6s ease-in-out;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    overflow: hidden;
+    z-index: 11;
 }
 
-/* Nội dung chữ trong thiệp */
-.words {
+.envelope-front {
+    position: absolute;
+    width: 100%; height: 100%;
+    background-color: var(--envelope-bg);
+    border-radius: 6px;
+    box-shadow: var(--shadow-envelope);
+    z-index: 14;
+    border: 1px solid rgba(197, 168, 128, 0.2);
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    text-align: center;
-    opacity: 0;
     transition: opacity 0.4s ease;
 }
 
-.title {
-    font-size: 14px;
-    font-weight: bold;
-    color: #b45309;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
+/* Nội dung ghi chú trên mặt bìa thư */
+.front-content {
+    text-align: center;
+    width: 100%;
+    padding: 20px;
 }
 
-.shoutout {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-hr {
-    width: 60%;
-    border: none;
-    border-top: 2px solid var(--gold);
-    margin: 8px 0;
-}
-
-.details {
-    font-size: 11px;
-    color: #475569;
-    line-height: 1.5;
-    margin-bottom: 8px;
-}
-
-.name {
-    font-size: 15px;
-    font-weight: bold;
-    color: #0f172a;
-}
-
-.footer {
-    font-size: 10px;
+.greeting-top {
+    font-family: 'Playfair Display', serif;
     font-style: italic;
-    color: #64748b;
-}
-
-/* ==================== TRẠNG THÁI KHI MỞ THIỆP ==================== */
-.envelope-wrapper.open .front.flap {
-    transform: rotateX(180deg);
-    z-index: 1; /* Đẩy nắp ra sau để lộ thiệp */
-}
-
-.envelope-wrapper.open .letter {
-    transform: translateY(-130px); /* Đẩy thiệp trượt lên */
-    height: 280px; /* Kéo dài thiệp để đọc đầy đủ nội dung */
-    z-index: 5; /* Đẩy thiệp lên trước tất cả */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.envelope-wrapper.open .words {
-    opacity: 1;
-    transition-delay: 0.4s; /* Đợi thiệp trượt lên mới hiện chữ */
-}
-
-/* Dòng text hướng dẫn */
-.hint {
-    margin-top: 25px;
-    color: #94a3b8;
     font-size: 14px;
-    animation: bounce 2s infinite;
+    color: var(--text-muted);
 }
 
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-8px); }
-    60% { transform: translateY(-4px); }
+.recipient-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--navy-blue);
+    margin: 4px 0 8px 0;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.divider-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #c5a880;
+    font-size: 10px;
+    margin-bottom: 12px;
+}
+.divider-line .line {
+    width: 80px; height: 1px; background-color: #ecdcae;
+}
+
+.special-notice {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-dark);
+    letter-spacing: 0.5px;
+}
+
+/* Dấu ấn sáp niêm phong */
+.wax-seal {
+    width: 42px; height: 42px;
+    background-color: #a91d22;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 14px;
+    margin: 15px auto;
+    box-shadow: 0 4px 10px rgba(169, 29, 34, 0.35);
+    transition: transform 0.3s ease;
+}
+
+.envelope-container:hover .wax-seal {
+    transform: scale(1.08) rotate(8deg);
+}
+
+.action-hint {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+    animation: pulseHint 2s infinite ease-in-out;
+}
+
+@keyframes pulseHint {
+    0%, 100% { opacity: 0.6; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-2px); }
+}
+
+/* ==========================================================================
+   3. KHUNG THIỆP MỜI TỐT NGHIỆP CHI TIẾT (AN ẨN TRONG PHONG BÌ BAN ĐẦU)
+   ========================================================================== */
+.invitation-card {
+    position: absolute;
+    top: 5%; left: 5%;
+    width: 90%; height: 90%;
+    background-color: var(--paper-white);
+    border-radius: 20px;
+    z-index: 12; /* Nằm kẹp giữa mặt trước và mặt sau phong bì */
+    opacity: 0;
+    transform: scale(0.85);
+    pointer-events: none;
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(160, 196, 255, 0.25);
+    transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    will-change: transform, opacity;
+}
+
+.card-scroll-viewport {
+    width: 100%; height: 100%;
+    padding: 40px 35px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Thiết kế dải cờ treo góc trái thiệp */
+.bunting-decor {
+    position: absolute;
+    top: 0; left: 0;
+    display: flex; gap: 4px; padding-left: 25px;
+    z-index: 2;
+}
+.bunting-decor span {
+    width: 15px; height: 20px;
+    background-color: rgba(160, 196, 255, 0.5);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.bunting-decor span:nth-child(even) { background-color: rgba(72, 202, 228, 0.4); }
+
+/* --- PHẦN ĐẦU THIỆP --- */
+.card-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.school-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+/* THÊM MỚI: Định dạng chuẩn cho ảnh Logo thật của trường Thủ Dầu Một */
+.school-logo-img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 5px rgba(15, 44, 89, 0.08));
+}
+
+.logo-text { font-size: 9px; line-height: 1.2; color: #4a5568; }
+.logo-text strong { font-size: 11.5px; color: #0056b3; }
+.logo-text .en-sub { font-size: 7.5px; color: #718096; }
+
+.tagline {
+    font-family: 'Dancing Script', cursive;
+    font-size: 24px;
+    color: var(--cyan-accent);
+}
+
+.main-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 40px;
+    color: var(--navy-blue);
+    letter-spacing: 2px;
+    line-height: 1;
+}
+
+.sub-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: 44px;
+    color: #90e0ef;
+    margin-top: -6px;
+    font-weight: 600;
+}
+
+/* --- KHUNG LỜI MỜI GIẤY NOTE --- */
+.note-paper-box {
+    background-color: var(--paper-white);
+    padding: 18px; border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(15, 44, 89, 0.03);
+    border-left: 4px solid var(--pastel-blue);
+    margin-bottom: 25px; text-align: center;
+}
+.note-paper-box p {
+    font-size: 13px; line-height: 1.6; color: var(--text-dark); font-weight: 500;
+}
+.note-paper-box .highlight-guest {
+    font-size: 15px; font-weight: 700; color: var(--navy-blue); margin: 3px 0;
+}
+
+/* --- BỐ CỤC LƯỚI HAI CỘT --- */
+.card-body-grid {
+    display: flex; gap: 35px;
+}
+.grid-column-left { flex: 1.2; }
+.grid-column-right { flex: 0.8; display: flex; justify-content: center; align-items: center; }
+
+/* Khối thông tin cột trái */
+.info-blocks-container {
+    display: flex; flex-direction: column; gap: 20px;
+}
+
+.info-block-item {
+    display: flex; gap: 15px; align-items: flex-start;
+}
+
+/* Trạng thái ban đầu phục vụ hiệu ứng hiện tuần tự */
+.info-block-item.stagger-anim {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.icon-circle-frame {
+    width: 34px; height: 34px;
+    background-color: rgba(160, 196, 255, 0.18);
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    color: var(--navy-blue); font-size: 13px; flex-shrink: 0;
+    animation: iconPulse 3s infinite ease-in-out;
+}
+
+@keyframes iconPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(160, 196, 255, 0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(160, 196, 255, 0); }
+}
+
+.info-block-text h3 {
+    font-size: 11.5px; font-weight: 700; color: var(--navy-blue); letter-spacing: 0.5px; margin-bottom: 3px;
+}
+.info-block-text .primary-text { font-size: 13.5px; font-weight: 600; color: var(--text-dark); }
+.info-block-text .secondary-text { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.info-block-text .quote-text { font-size: 12px; font-style: italic; line-height: 1.4; color: var(--text-dark); }
+.contact-flex-row { display: flex; gap: 15px; font-size: 12.5px; font-weight: 600; color: var(--navy-blue); margin-top: 4px; }
+.contact-node i { margin-right: 3px; }
+
+/* --- CỘT PHẢI: KHUNG ẢNH VÀ RIBBON --- */
+.arched-frame-container {
+    width: 100%; 
+    max-width: 260px; 
+    position: relative; 
+    padding-bottom: 20px;
+}
+
+.arched-window {
+    width: 100%; 
+    height: 340px;
+    border-radius: 0px; /* Bỏ hoàn toàn bo góc vuông vắn */
+    border: 8px solid #ffffff; /* Viền trắng dày như ảnh Polaroid */
+    overflow: hidden; 
+    box-shadow: 0 10px 25px rgba(15, 44, 89, 0.15); /* Đổ bóng sâu tạo khối rời */
+    background-color: #f0f4f8;
+}
+
+.graduate-img {
+    width: 100%; 
+    height: 100%;
+    object-fit: cover; 
+    object-position: center 20%;
+    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.arched-window:hover .graduate-img { 
+    transform: scale(1.05); 
+}
+
+/* Khung Vẽ Ribbon chứa tên bằng CSS thuần */
+.ribbon-wrapper {
+    position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+    width: 105%; display: flex; justify-content: center; z-index: 5;
+}
+.ribbon-body {
+    background-color: #79a6d2; color: var(--paper-white);
+    padding: 8px 20px; font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 13px; letter-spacing: 0.5px;
+    border-radius: 4px; box-shadow: 0 4px 12px rgba(15, 44, 89, 0.15);
+    white-space: nowrap;
+}
+.ribbon-fold {
+    width: 15px; height: 28px; background-color: #5985b0;
+    position: absolute; top: 5px; z-index: -1;
+}
+.fold-left { left: -4px; clip-path: polygon(10% 0, 100% 0, 100% 100%, 10% 100%, 0% 50%); }
+.fold-right { right: -4px; clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0% 100%); }
+
+.botanical-cluster {
+    position: absolute; bottom: 40px; width: 100%;
+    display: flex; justify-content: space-between; padding: 0 8px;
+    pointer-events: none; z-index: 3; font-size: 18px;
+}
+
+/* Hệ thống Doodle chuyển động chậm */
+.doodle { position: absolute; color: rgba(15, 44, 89, 0.12); font-size: 16px; pointer-events: none; animation: slowFloat 4s infinite ease-in-out; }
+.hat-doodle { top: 25px; left: 25px; font-size: 24px; transform: rotate(-12deg); }
+.heart-doodle-1 { top: 95px; right: 30px; animation-delay: 1s; }
+.heart-doodle-2 { bottom: 35px; left: 25px; animation-delay: 2s; }
+.star-doodle-1 { top: 45%; left: 15px; animation-delay: 0.5s; }
+.diploma-doodle { bottom: 15px; right: 20px; font-size: 20px; animation-delay: 1.5s; }
+
+@keyframes slowFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(4deg); }
+}
+
+/* Chân thiệp và Button mở lại thư nâng cao */
+.card-footer { text-align: center; margin-top: 25px; }
+.welcome-wish { font-family: 'Dancing Script', cursive; font-size: 19px; color: var(--navy-blue); font-weight: 600; margin-bottom: 15px; }
+
+.btn-reopen-envelope {
+    background: transparent; border: 1px dashed var(--pastel-blue);
+    padding: 6px 14px; border-radius: 20px; font-family: 'Montserrat', sans-serif;
+    font-size: 11px; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: all 0.3s ease;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.btn-reopen-envelope:hover {
+    background-color: rgba(160, 196, 255, 0.1);
+    color: var(--navy-blue); border-style: solid;
+}
+
+/* ==========================================================================
+   4. QUẢN LÝ ĐIỀU PHỐI TRẠNG THÁI HIỆU ỨNG (STATE MANAGEMENT)
+   ========================================================================== */
+/* BƯỚC 1: Xoay 3D nắp phong bì ra sau */
+.stage-wrapper.step-open-flap .envelope-flap {
+    transform: rotateX(180deg);
+    z-index: 10; /* Hạ thứ tự hiển thị ra sau để lộ tấm thiệp */
+}
+.stage-wrapper.step-open-flap .wax-seal {
+    opacity: 0; pointer-events: none;
+}
+
+/* BƯỚC 2 & 3: Đẩy thiệp trượt lên và phóng to chiếm vị trí trung tâm */
+.stage-wrapper.step-reveal-card .envelope-front {
+    opacity: 0; pointer-events: none;
+    transform: translateY(40px) scale(0.85);
+    transition: all 0.5s ease;
+}
+.stage-wrapper.step-reveal-card .envelope-container {
+    position: static; /* Gỡ bỏ giới hạn khung cũ */
+}
+.stage-wrapper.step-reveal-card .invitation-card {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    width: 820px; height: 90vh; max-width: 95vw;
+    opacity: 1; z-index: 100; pointer-events: auto;
+}
+
+/* ==========================================================================
+   5. RESPONSIVE HOÀN HẢO CHO MỌI MÀN HÌNH
+   ========================================================================== */
+@media (max-width: 768px) {
+    .stage-wrapper.step-reveal-card .invitation-card {
+        height: 94vh;
+    }
+    .card-scroll-viewport { padding: 25px 15px; }
+    .card-body-grid { flex-direction: column; gap: 25px; }
+    
+    /* Trên Mobile đẩy khung ảnh lên phía trước phần thông tin */
+    .grid-column-right { order: -1; } 
+    .arched-frame-container { max-width: 210px; }
+    .arched-window { height: 270px; }
+    
+    .main-title { font-size: 30px; }
+    .sub-title { font-size: 34px; }
+    .contact-flex-row { flex-direction: column; gap: 5px; }
 }
