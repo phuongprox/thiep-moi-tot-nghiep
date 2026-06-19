@@ -1,6 +1,3 @@
-/* ==========================================================================
-   1. ĐỊNH NGHĨA BIẾN HỆ MÀU & ĐỊNH DẠNG RESET CHUẨN
-   ========================================================================== */
 :root {
     --navy-blue: #0f2c59;        /* Sắc chữ chính sang trọng */
     --pastel-blue: #a0c4ff;      /* Sắc viền và trang trí phụ */
@@ -29,6 +26,12 @@ body {
     align-items: center;
     overflow-x: hidden;
     position: relative;
+}
+
+/* Ẩn hoàn toàn giao diện mặc định của thẻ nhạc */
+#bgMusic {
+    display: none;
+    visibility: hidden;
 }
 
 /* Hiệu ứng mảng Watercolor loang nhạt phía nền */
@@ -60,9 +63,6 @@ body {
     position: relative;
 }
 
-/* ==========================================================================
-   2. KHUNG PHONG BÌ THƯ BAN ĐẦU (MÀN HÌNH MỞ ĐẦU)
-   ========================================================================== */
 .envelope-container {
     width: 420px;
     max-width: 92vw;
@@ -199,9 +199,6 @@ body {
     50% { opacity: 1; transform: translateY(-2px); }
 }
 
-/* ==========================================================================
-   3. KHUNG THIỆP MỜI TỐT NGHIỆP CHI TIẾT (AN ẨN TRONG PHONG BÌ BAN ĐẦU)
-   ========================================================================== */
 .invitation-card {
     position: absolute;
     top: 5%; left: 5%;
@@ -360,10 +357,10 @@ body {
 .arched-window {
     width: 100%; 
     height: 340px;
-    border-radius: 0px; /* Bỏ hoàn toàn bo góc vuông vắn */
-    border: 8px solid #ffffff; /* Viền trắng dày như ảnh Polaroid */
+    border-radius: 0px; /* Thừa hưởng style vuông vức như ảnh Polaroid */
+    border: 8px solid #ffffff; /* Viền trắng dày */
     overflow: hidden; 
-    box-shadow: 0 10px 25px rgba(15, 44, 89, 0.15); /* Đổ bóng sâu tạo khối rời */
+    box-shadow: 0 10px 25px rgba(15, 44, 89, 0.15); /* Đổ bóng sâu rời khối */
     background-color: #f0f4f8;
 }
 
@@ -432,10 +429,6 @@ body {
     color: var(--navy-blue); border-style: solid;
 }
 
-/* ==========================================================================
-   4. QUẢN LÝ ĐIỀU PHỐI TRẠNG THÁI HIỆU ỨNG (STATE MANAGEMENT)
-   ========================================================================== */
-/* BƯỚC 1: Xoay 3D nắp phong bì ra sau */
 .stage-wrapper.step-open-flap .envelope-flap {
     transform: rotateX(180deg);
     z-index: 10; /* Hạ thứ tự hiển thị ra sau để lộ tấm thiệp */
@@ -444,7 +437,6 @@ body {
     opacity: 0; pointer-events: none;
 }
 
-/* BƯỚC 2 & 3: Đẩy thiệp trượt lên và phóng to chiếm vị trí trung tâm */
 .stage-wrapper.step-reveal-card .envelope-front {
     opacity: 0; pointer-events: none;
     transform: translateY(40px) scale(0.85);
@@ -461,9 +453,6 @@ body {
     opacity: 1; z-index: 100; pointer-events: auto;
 }
 
-/* ==========================================================================
-   5. RESPONSIVE HOÀN HẢO CHO MỌI MÀN HÌNH
-   ========================================================================== */
 @media (max-width: 768px) {
     .stage-wrapper.step-reveal-card .invitation-card {
         height: 94vh;
@@ -479,4 +468,38 @@ body {
     .main-title { font-size: 30px; }
     .sub-title { font-size: 34px; }
     .contact-flex-row { flex-direction: column; gap: 5px; }
+}
+
+.card-sparkles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Không cản trở cuộn trang hoặc click */
+    overflow: hidden;
+    z-index: 1; /* Nằm dưới chữ nhưng trên nền trắng */
+}
+
+.sparkle-element {
+    position: absolute;
+    color: #ffdf00; /* Màu vàng kim lấp lánh (hoặc dùng #48cae4 nếu thích tone xanh) */
+    font-size: 14px;
+    pointer-events: none;
+    opacity: 0;
+    animation: sparkleFade 1.5s ease-in-out forwards;
+}
+
+@keyframes sparkleFade {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.3) rotate(180deg);
+        opacity: 0;
+    }
 }

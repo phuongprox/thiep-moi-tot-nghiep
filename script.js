@@ -4,9 +4,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const envelopeContainer = document.getElementById("envelopeContainer");
     const btnReopenEnvelope = document.getElementById("btnReopenEnvelope");
     const particlesContainer = document.getElementById("particlesContainer");
+    const cardSparklesContainer = document.getElementById("cardSparklesContainer");
+    
+    // Khởi tạo đối tượng nhạc nền ẩn
+    const bgMusic = document.getElementById("bgMusic");
+    
+    // Biến quản lý vòng lặp tạo lấp lánh trong thiệp
+    let sparkleIntervalId = null;
 
     // ==========================================================================
-    // A. XỬ LÝ KỊCH BẢN TƯƠNG TÁC MỞ PHONG BÌ ➔ HIỆN THIỆP
+    // A. XỬ LÝ KỊCH BẢN TƯƠNG TÁC MỞ PHONG BÌ ➔ HIỆN THIỆP & PHÁT NHẠC
     // ==========================================================================
     if (envelopeContainer) {
         envelopeContainer.addEventListener("click", function startEnvelopeSequence() {
@@ -15,6 +22,13 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Bước 1: Kích hoạt lật 3D nắp thư ra phía sau
             stageWrapper.classList.add("step-open-flap");
+            
+            // Kích hoạt phát nhạc nền mượt mà khi khách tương tác chạm mở bao thư
+            if (bgMusic) {
+                bgMusic.play().catch(error => {
+                    console.log("Trình duyệt chặn phát âm thanh tự động:", error);
+                });
+            }
 
             // Bước 2 & 3: Sau 500ms (nắp lật xong), trượt thiệp lên và phóng đại chiếm sân khấu chính
             setTimeout(() => {
@@ -22,6 +36,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 // Khởi chạy dòng chảy hiện tuần tự cho các dòng thông tin sự kiện
                 animateInfoBlocks(true);
+                
+                // KÍCH HOẠT HIỆU ỨNG LẤP LÁNH BÊN TRONG THIỆP
+                startCardSparkles();
             }, 550);
         });
     }
@@ -38,17 +55,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     block.style.opacity = "0";
                     block.style.transform = "translateY(12px)";
                 }
-            }, index * 140); // Mỗi khối thông tin xuất hiện/ẩn cách nhau 140ms
+            }, index * 140);
         });
     }
 
     // ==========================================================================
-    // B. XỬ LÝ TÍNH NĂNG NÂNG CAO: ĐÓNG THIỆP LẠI ➔ QUAY VỀ PHONG BÌ BAN ĐẦU
+    // B. XỬ LÝ TÌNH NĂNG NÂNG CAO: ĐÓNG THIỆP LẠI ➔ QUAY VỀ BAN ĐẦU & TẮT NHẠC
     // ==========================================================================
     if (btnReopenEnvelope) {
         btnReopenEnvelope.addEventListener("click", () => {
             // Bước 1: Ẩn tuần tự các dòng thông tin trước khi co thiệp
             animateInfoBlocks(false);
+            
+            // TẮT HIỆU ỨNG LẤP LÁNH TRONG THIỆP
+            stopCardSparkles();
+            
+            // Tự động tắt nhạc nền và reset thời gian về ban đầu khi quay về phong bì đóng
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
 
             setTimeout(() => {
                 // Bước 2: Thu nhỏ thiệp, trả phong bì về vị trí cũ
@@ -63,9 +89,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         envelopeContainer.addEventListener("click", function startEnvelopeSequence() {
                             envelopeContainer.removeEventListener("click", startEnvelopeSequence);
                             stageWrapper.classList.add("step-open-flap");
+                            
+                            if (bgMusic) {
+                                bgMusic.play().catch(e => console.log(e));
+                            }
+
                             setTimeout(() => {
                                 stageWrapper.classList.add("step-reveal-card");
                                 animateInfoBlocks(true);
+                                startCardSparkles(); // Bật lại lấp lánh khi mở lại
                             }, 550);
                         });
                     }, 400);
@@ -76,10 +108,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================================================
-    // C. TỐI ƯU HIỆU NĂNG: TẠO HIỆU ỨNG CÁNH HOA / TRÁI TIM RƠI TỰ ĐỘNG
+    // C. LOGIC SINH HIỆU ỨNG LẤP LÁNH NỘI BỘ TẤM THIỆP (CARD SPARKLES)
+    // ==========================================================================
+    const sparkleIcons = ["✦", "✧", "✨"];
+
+    function createSingleSparkle() {
+        if (!cardSparklesContainer) return;
+        
+        const sparkle = document.createElement("div");
+        sparkle.className = "sparkle-element";
+        sparkle.innerText = sparkleIcons[Math.floor(Math.random() * sparkleIcons.length)];
+        
+        // Tạo tọa độ ngẫu nhiên dựa trên chiều rộng/cao thực tế của nội dung cuộn thiệp
+        const posX = Math.random() * 100; // Tỷ lệ %
+        const posY = Math.random() * 100; // Tỷ lệ %
+        
+        sparkle.style.left = `${posX}%`;
+        sparkle.style.top = `${posY}%`;
+        
+        // Kích thước ngẫu nhiên từ 10px đến 22px
+        sparkle.style.fontSize = `${10 + Math.random() * 12}px`;
+        
+        // Ngẫu nhiên đổi màu giữa vàng kim nhẹ và xanh ngọc lấp lánh cho sinh động
+        const colors = ["#ffdf00", "#fff3a8", "#90e0ef", "#ffffff"];
+        sparkle.style.color = colors[Math.floor(Math.random() * colors.length)];
+        
+        cardSparklesContainer.appendChild(sparkle);
+        
+        // Tự động xóa thẻ div ngôi sao sau khi chạy xong animation css (1.5 giây)
+        setTimeout(() => {
+            sparkle.remove();
+        }, 1500);
+    }
+
+    function startCardSparkles() {
+        // Cứ mỗi 300ms tạo ra một ngôi sao lấp lánh mới ngẫu nhiên
+        if (!sparkleIntervalId) {
+            sparkleIntervalId = setInterval(createSingleSparkle, 300);
+        }
+    }
+
+    function stopCardSparkles() {
+        if (sparkleIntervalId) {
+            clearInterval(sparkleIntervalId);
+            sparkleIntervalId = null;
+        }
+        if (cardSparklesContainer) {
+            cardSparklesContainer.innerHTML = ""; // Xóa sạch các ngôi sao đang chạy dở
+        }
+    }
+
+    // ==========================================================================
+    // D. TẠO HIỆU ỨNG CÁNH HOA / TRÁI TIM RƠI TỰ ĐỘNG Ở NỀN NGOÀI (BACKGROUND)
     // ==========================================================================
     const particleTypes = ["🌸", "❤️", "✨"];
-    const maxParticles = 15; // Giới hạn số lượng đối tượng cùng xuất hiện để bảo vệ CPU/RAM
+    const maxParticles = 15;
 
     function createParticle() {
         if (particlesContainer.children.length >= maxParticles) return;
@@ -92,10 +175,9 @@ document.addEventListener("DOMContentLoaded", () => {
         particle.style.userSelect = "none";
         particle.style.pointerEvents = "none";
         
-        // Thiết lập các thông số ngẫu nhiên ban đầu ứng dụng requestAnimationFrame giả lập
         const startX = Math.random() * window.innerWidth;
         let startY = -20;
-        const speedY = 0.7 + Math.random() * 1.2; // Tốc độ rơi chậm, lãng mạn
+        const speedY = 0.7 + Math.random() * 1.2;
         const speedX = (Math.random() - 0.5) * 0.5;
         const rotationSpeed = (Math.random() - 0.5) * 2;
         let currentRotation = Math.random() * 360;
@@ -110,10 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
             startY += speedY;
             currentRotation += rotationSpeed;
             
-            // Di chuyển mượt mà thông qua việc gán trực tiếp tọa độ
             particle.style.transform = `translate3d(${speedX * startY}px, ${startY}px, 0) rotate(${currentRotation}deg)`;
 
-            // Nếu đối tượng rơi ra khỏi rìa màn hình dưới thì tiến hành dọn dẹp giải phóng bộ nhớ
             if (startY < window.innerHeight) {
                 requestAnimationFrame(updateFrame);
             } else {
@@ -124,6 +204,5 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(updateFrame);
     }
 
-    // Tạo các hạt rơi tự động với chu kỳ giãn cách đều đặn
     setInterval(createParticle, 800);
 });
